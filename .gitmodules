@@ -1,0 +1,3 @@
+[submodule "gitmodules/proton-cs-client"]
+	path = gitmodules/proton-cs-client
+	url = https://github.com/Eppie-io/proton-cs-client
