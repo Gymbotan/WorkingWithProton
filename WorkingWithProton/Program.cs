@@ -12,6 +12,8 @@ using MimeKit;
 using static WorkingWithProton.Exceptions;
 using MimeKit.IO;
 using WorkingWithProton.Entities;
+using Org.BouncyCastle.Ocsp;
+using MimeKit.Cryptography;
 
 namespace WorkingWithProton
 {
@@ -221,6 +223,7 @@ namespace WorkingWithProton
                     }
 
                     context.Import(pgpRing);
+                    context.Import(pubRings);
 
                     // Getting addrKey password from Token
                     string tokenText = addressResponse.Addresses.First().Keys?.First(key => key.IsActive).Token ?? throw new RequestException("Token is null."); 
@@ -228,24 +231,71 @@ namespace WorkingWithProton
                     // TODO: Check is key Active? Is it enough of checkings?
 
                     // Token is encrypted password for address key. So we forming encrypted message
-                    MimePart mp = new MimePart()
-                    {
-                        ContentDisposition = new ContentDisposition("attachment"),
-                        Content = new MimeContent(new MemoryStream(Encoding.ASCII.GetBytes(tokenText)))
-                    };
+                    //MimePart mp = new MimePart()
+                    //{
+                    //    ContentDisposition = new ContentDisposition("attachment"),
+                    //    Content = new MimeContent(new MemoryStream(Encoding.ASCII.GetBytes(tokenText)))
+                    //};
 
                     string addrKeyPassword;
 
-                    using (MemoryStream stream = new MemoryStream())
+                    using (MemoryStream stream = new MemoryStream(Encoding.ASCII.GetBytes(tokenText)))
                     {
-                        mp.WriteTo(stream);
-                        stream.Position = 0;
+                        //mp.WriteTo(stream);
+                        //stream.Position = 0;
                         using var decryptedData = new MemoryBlockStream();
                         context.DecryptTo(stream, decryptedData);
                         decryptedData.Position = 0;
                         using StreamReader reader = new StreamReader(decryptedData);
                         addrKeyPassword = reader.ReadToEnd(); // Password for address key
                     }
+
+
+
+
+                    //string signature = addressResponse.Addresses.First().Keys?.First(key => key.IsActive).Signature ?? throw new RequestException("Signature is null.");
+                    //// TODO: What to do if there are will be a lot of keys
+                    //// TODO: Check is key Active? Is it enough of checkings?
+
+                    //// Token is encrypted password for address key. So we forming encrypted message
+                    //MimePart mp2 = new MimePart()
+                    //{
+                    //    ContentDisposition = new ContentDisposition("attachment"),
+                    //    Content = new MimeContent(new MemoryStream(Encoding.ASCII.GetBytes(signature)))
+                    //};
+
+                    ////string addrKeyPassword;
+
+                    //using (MemoryStream stream = new MemoryStream())
+                    //{
+                    //    using Stream inputData = new MemoryStream();
+                    //    //using Stream encryptedData = new MemoryStream();
+                    //    using var messageBody = new TextPart() { Text = addrKeyPassword };
+                    //    messageBody.WriteTo(inputData);
+                    //    inputData.Position = 0;
+
+
+
+                    //    mp2.WriteTo(stream);
+                    //    stream.Position = 0;
+                    //    //using var decryptedData = new MemoryBlockStream();
+                    //    //context.DecryptTo(stream, decryptedData);
+                    //    //decryptedData.Position = 0;
+                    //    //using StreamReader reader = new StreamReader(decryptedData);
+                    //    //addrKeyPassword = reader.ReadToEnd(); // Password for address key
+
+
+                    //    var signatures = context.Verify(inputData, stream);
+
+                    //    foreach (IDigitalSignature sig in signatures)
+                    //    {
+                    //        var res = sig.Verify();
+                    //    }
+                    //}
+
+
+
+
 
                     // Add addrKey and addrKeyPassword to context 
                     string addrKey = addressResponse.Addresses.First().Keys?.First(key => key.IsActive).PrivateKey ?? throw new RequestException("Address key is null.");

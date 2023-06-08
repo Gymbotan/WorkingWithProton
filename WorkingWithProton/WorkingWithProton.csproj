@@ -8,7 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.2.1" ExcludeAssets="Compile" GeneratePathProperty="true" />
     <PackageReference Include="Moq" Version="4.18.4" />
+    <Reference Include="BouncyCastle.Cryptography">
+      <HintPath>$(PkgBouncyCastle_Cryptography)\lib\netstandard2.0\BouncyCastle.Cryptography.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

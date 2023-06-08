@@ -52,8 +52,8 @@ namespace WorkingWithProton.Entities
             //[JsonInclude]
             //public int Type { get; private set; }
 
-            //[JsonInclude]
-            //public string? Signature { get; private set; }
+            [JsonInclude]
+            public string? Signature { get; private set; }
 
             //[JsonInclude]
             //public int Priority { get; private set; }
@@ -64,8 +64,8 @@ namespace WorkingWithProton.Entities
             //[JsonInclude]
             //public int HasKeys { get; private set; }
 
-            //[JsonInclude]
-            //public SignedKey? SignedKeyList { get; private set; }
+            [JsonInclude]
+            public SignedKey? SignedKeyList { get; private set; }
         }
 
         public struct SignedKey
