@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 namespace WorkingWithProton.Entities
 {
-
     [SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses", Justification = "Class is instantiated via JsonSerializer")]
     public class AddressesResponse
     {
@@ -70,11 +69,11 @@ namespace WorkingWithProton.Entities
 
         public struct SignedKey
         {
-            [JsonInclude]
-            public int MinEpochID { get; private set; }
+            //[JsonInclude]
+            //public int MinEpochID { get; private set; }
 
-            [JsonInclude]
-            public int MaxEpochID { get; private set; }
+            //[JsonInclude]
+            //public int MaxEpochID { get; private set; }
 
             [JsonInclude]
             public int? ExpectedMinEpochID { get; private set; }

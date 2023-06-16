@@ -25,6 +25,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KeyDerivationLib", "gitmodu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KeyDerivation", "gitmodules\TuviPgpLib\gitmodules\TuviKeyDerivationLib\KeyDerivationInterface\KeyDerivation.csproj", "{C403F014-6405-4A65-BA17-009CC3DAE51A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MimeKit", "..\MimeKit\MimeKit\MimeKit.csproj", "{A7C0FAAF-4752-421D-A3D0-D2CB59032E1E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +77,10 @@ Global
 		{C403F014-6405-4A65-BA17-009CC3DAE51A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C403F014-6405-4A65-BA17-009CC3DAE51A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C403F014-6405-4A65-BA17-009CC3DAE51A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7C0FAAF-4752-421D-A3D0-D2CB59032E1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7C0FAAF-4752-421D-A3D0-D2CB59032E1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7C0FAAF-4752-421D-A3D0-D2CB59032E1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7C0FAAF-4752-421D-A3D0-D2CB59032E1E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

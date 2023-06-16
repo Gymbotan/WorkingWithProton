@@ -12,8 +12,6 @@ using MimeKit;
 using static WorkingWithProton.Exceptions;
 using MimeKit.IO;
 using WorkingWithProton.Entities;
-using Org.BouncyCastle.Ocsp;
-using MimeKit.Cryptography;
 
 namespace WorkingWithProton
 {
@@ -112,20 +110,20 @@ namespace WorkingWithProton
                    headers: null);
 
                 #region Null checkings
-                if (saltResponse == null)
-                {
-                    throw new RequestException("Salt response is null.");
-                }
+                //if (saltResponse == null)
+                //{
+                //    throw new RequestException("Salt response is null.");
+                //}
 
                 if (saltResponse.KeySalts == null)
                 {
                     throw new RequestException("KeySalts in salt response is null.");
                 }
 
-                if (userResponse == null)
-                {
-                    throw new RequestException("User response is null.");
-                }
+                //if (userResponse == null)
+                //{
+                //    throw new RequestException("User response is null.");
+                //}
 
                 if (userResponse.User == null)
                 {
@@ -208,7 +206,9 @@ namespace WorkingWithProton
                 await Console.Out.WriteLineAsync("\nEncrypted message: \n");
                 await Console.Out.WriteLineAsync(signedMime.ToString());
 
-                // Decryption
+                //PgpPublicKey keyForSigning;
+                
+                    // Decryption
                 PgpSecretKeyRingBundle pgpRing;
                 using (MyTuviContext context = new MyTuviContext(new MockPgpKeyStorage().Get()))
                 {
@@ -220,7 +220,26 @@ namespace WorkingWithProton
                         pgpRing = new PgpSecretKeyRingBundle(keyIn);
                         var key = pgpRing.GetKeyRings().First().GetSecretKeys().First(key => key.IsSigningKey == false); // Find encripting key
                         context.AddKeyPassword(key.KeyId, Strings.FromByteArray(saltedKeyPass)); // Add password of this key to the context
+
+                        var key2 = pgpRing.GetKeyRings().First().GetSecretKeys().First(key => key.IsSigningKey == true); // Find encripting key
+                        //context.AddKeyPassword(key2.KeyId, Strings.FromByteArray(saltedKeyPass));
+                        //keyForSigning = key2.PublicKey;
+                        var publicSigningKeys = pgpRing.GetSecretKeyRing(key2.KeyId).GetPublicKeys();
+
+
+                        // Adding public signing keys for checking signatures
+                        using var str = new MemoryStream();
+                        foreach (var pubSigKey in publicSigningKeys)
+                        {
+                            pubSigKey.Encode(str);
+                        }
+                        str.Position = 0;
+                        var pkRing = new PgpPublicKeyRing(str);
+                        context.Import(pkRing);
                     }
+
+                    
+                    //var a = new PgpPublicKeyRing()
 
                     context.Import(pgpRing);
                     context.Import(pubRings);
@@ -253,46 +272,65 @@ namespace WorkingWithProton
 
 
 
-                    //string signature = addressResponse.Addresses.First().Keys?.First(key => key.IsActive).Signature ?? throw new RequestException("Signature is null.");
-                    //// TODO: What to do if there are will be a lot of keys
-                    //// TODO: Check is key Active? Is it enough of checkings?
+                    string signature = addressResponse.Addresses.First().Keys?.First(key => key.IsActive).Signature ?? throw new RequestException("Signature is null.");
+                    // TODO: What to do if there are will be a lot of keys
+                    // TODO: Check is key Active? Is it enough of checkings?
 
-                    //// Token is encrypted password for address key. So we forming encrypted message
-                    //MimePart mp2 = new MimePart()
-                    //{
-                    //    ContentDisposition = new ContentDisposition("attachment"),
-                    //    Content = new MimeContent(new MemoryStream(Encoding.ASCII.GetBytes(signature)))
-                    //};
+                    //Another version of signature checking
+                    using (var armored = new ArmoredInputStream(new MemoryStream(Encoding.ASCII.GetBytes(signature))))
+                    {
+                        PgpObjectFactory factory = new PgpObjectFactory(armored);
 
-                    ////string addrKeyPassword;
-
-                    //using (MemoryStream stream = new MemoryStream())
-                    //{
-                    //    using Stream inputData = new MemoryStream();
-                    //    //using Stream encryptedData = new MemoryStream();
-                    //    using var messageBody = new TextPart() { Text = addrKeyPassword };
-                    //    messageBody.WriteTo(inputData);
-                    //    inputData.Position = 0;
-
-
-
-                    //    mp2.WriteTo(stream);
-                    //    stream.Position = 0;
-                    //    //using var decryptedData = new MemoryBlockStream();
-                    //    //context.DecryptTo(stream, decryptedData);
-                    //    //decryptedData.Position = 0;
-                    //    //using StreamReader reader = new StreamReader(decryptedData);
-                    //    //addrKeyPassword = reader.ReadToEnd(); // Password for address key
+                        PgpSignature? sign = ((PgpSignatureList)factory.NextPgpObject())[0];
+                        
+                        var pubSignKey = context.EnumeratePublicKeys().First(key => key.KeyId == sign.KeyId);//.GetPublicKeys(recipients);
+                        
+                        sign.InitVerify(pubSignKey);
+                        sign.Update(Encoding.ASCII.GetBytes(addrKeyPassword));
+                        if (sign.Verify() != true)
+                        {
+                            throw new Exception("Token signature is incorrect.");
+                        }
+                    }
 
 
-                    //    var signatures = context.Verify(inputData, stream);
 
-                    //    foreach (IDigitalSignature sig in signatures)
-                    //    {
-                    //        var res = sig.Verify();
-                    //    }
-                    //}
+              //      // Token is encrypted password for address key. So we forming encrypted message
+              //      MimePart mp2 = new MimePart()
+              //      {
+              //          ContentDisposition = new ContentDisposition("attachment"),
+              //          Content = new MimeContent(new MemoryStream(Encoding.ASCII.GetBytes(signature)))
+              //      };
 
+              //      //string addrKeyPassword;
+
+              //      using (MemoryStream stream = new MemoryStream())
+              //      {
+              //          using Stream inputData = new MemoryStream();
+              //          //using Stream encryptedData = new MemoryStream();
+              //          using var messageBody = new TextPart() { Text = addrKeyPassword };
+              //          messageBody.WriteTo(inputData);
+              //          inputData.Position = 0;
+              //          //pgpRing.GetSecretKey()
+              ////          var sigMime = context.Sign(pgpRing.GetSecretKey(5138869812945562109), DigestAlgorithm.Sha512, inputData);
+
+
+              //          mp2.WriteTo(stream);
+              //          stream.Position = 0;
+              //          //using var decryptedData = new MemoryBlockStream();
+              //          //context.DecryptTo(stream, decryptedData);
+              //          //decryptedData.Position = 0;
+              //          //using StreamReader reader = new StreamReader(decryptedData);
+              //          //addrKeyPassword = reader.ReadToEnd(); // Password for address key
+
+
+              //          var signatures = context.Verify(inputData, stream);
+
+              //          foreach (IDigitalSignature sig in signatures)
+              //          {
+              //              var res = sig.Verify();
+              //          }
+              //      }
 
 
 
